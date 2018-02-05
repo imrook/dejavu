@@ -80,14 +80,16 @@ if __name__ == '__main__':
 
     elif args.recognize:
         # Recognize audio source
-        song = None
+        songs = []
         source = args.recognize[0]
         opt_arg = args.recognize[1]
 
         if source in ('mic', 'microphone'):
-            song = djv.recognize(MicrophoneRecognizer, milliseconds=int(opt_arg))
+            songs = djv.recognize(MicrophoneRecognizer, milliseconds=int(opt_arg))
         elif source == 'file':
-            song = djv.recognize(FileRecognizer, opt_arg)
-        print(song)
+            songs = djv.recognize(FileRecognizer(djv, 100), opt_arg)
+
+        for song in songs:
+            print(song)
 
     sys.exit(0)

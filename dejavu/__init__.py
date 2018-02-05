@@ -1,3 +1,5 @@
+from pydub import AudioSegment
+
 from dejavu.database import get_database, Database
 import dejavu.decoder as decoder
 import fingerprint
@@ -8,7 +10,6 @@ import sys
 
 
 class Dejavu(object):
-
     SONG_ID = "song_id"
     SONG_NAME = 'song_name'
     CONFIDENCE = 'confidence'
@@ -154,12 +155,12 @@ class Dejavu(object):
                          fingerprint.DEFAULT_WINDOW_SIZE *
                          fingerprint.DEFAULT_OVERLAP_RATIO, 5)
         song = {
-            Dejavu.SONG_ID : song_id,
-            Dejavu.SONG_NAME : songname,
-            Dejavu.CONFIDENCE : largest_count,
-            Dejavu.OFFSET : int(largest),
-            Dejavu.OFFSET_SECS : nseconds,
-            Database.FIELD_FILE_SHA1 : song.get(Database.FIELD_FILE_SHA1, None),}
+            Dejavu.SONG_ID: song_id,
+            Dejavu.SONG_NAME: songname,
+            Dejavu.CONFIDENCE: largest_count,
+            Dejavu.OFFSET: int(largest),
+            Dejavu.OFFSET_SECS: nseconds,
+            Database.FIELD_FILE_SHA1: song.get(Database.FIELD_FILE_SHA1, None), }
         return song
 
     def recognize(self, recognizer, *options, **kwoptions):
@@ -177,7 +178,8 @@ def _fingerprint_worker(filename, limit=None, song_name=None):
 
     songname, extension = os.path.splitext(os.path.basename(filename))
     song_name = song_name or songname
-    channels, Fs, file_hash = decoder.read(filename, limit)
+    audiofile = AudioSegment.from_file(filename)
+    channels, Fs, file_hash = decoder.read(filename, audiofile, limit)
     result = set()
     channel_amount = len(channels)
 

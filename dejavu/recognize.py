@@ -1,3 +1,5 @@
+from pydub import AudioSegment
+
 import dejavu.fingerprint as fingerprint
 import dejavu.decoder as decoder
 import numpy as np
@@ -22,30 +24,39 @@ class BaseRecognizer(object):
 
 
 class FileRecognizer(BaseRecognizer):
-    def __init__(self, dejavu):
+    def __init__(self, dejavu, width_milliseconds):
         super(FileRecognizer, self).__init__(dejavu)
+        self.width_milliseconds = width_milliseconds
 
     def recognize_file(self, filename):
-        frames, self.Fs, file_hash = decoder.read(filename, self.dejavu.limit)
 
-        t = time.time()
-        match = self._recognize(*frames)
-        t = time.time() - t
+        matches = []
+        audiofile = AudioSegment.from_file(filename)
+        segments = np.math.ceil(audiofile.duration_seconds * 1000 / self.width_milliseconds)
+        for seg in range(0, int(segments)):
+            start = seg * self.width_milliseconds
+            frames, self.Fs, file_hash = decoder.read(filename, audiofile, self.width_milliseconds, start)
 
-        if match:
-            match['match_time'] = t
+            t = time.time()
+            match = self._recognize(*frames)
+            t = time.time() - t
 
-        return match
+            if match:
+                match['match_time'] = t
+
+            matches.append(match)
+
+        return matches
 
     def recognize(self, filename):
         return self.recognize_file(filename)
 
 
 class MicrophoneRecognizer(BaseRecognizer):
-    default_chunksize   = 8192
-    default_format      = pyaudio.paInt16
-    default_channels    = 2
-    default_samplerate  = 44100
+    default_chunksize = 8192
+    default_format = pyaudio.paInt16
+    default_channels = 2
+    default_samplerate = 44100
 
     def __init__(self, dejavu):
         super(MicrophoneRecognizer, self).__init__(dejavu)
@@ -104,7 +115,7 @@ class MicrophoneRecognizer(BaseRecognizer):
         for i in range(0, int(self.samplerate / self.chunksize * milliseconds / 1000.0)):
             self.process_recording()
         self.stop_recording()
-        return self.recognize_recording()
+        return [self.recognize_recording()]
 
 
 class NoRecordingError(Exception):

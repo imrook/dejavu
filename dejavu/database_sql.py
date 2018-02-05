@@ -286,7 +286,7 @@ class SQLDatabase(Database):
         for hash, offset in hashes:
             mapper[hash.upper()] = offset
 
-        # Get an iteratable of all the hashes we need
+        # Get an iterable of all the hashes we need
         values = mapper.keys()
 
         with self.cursor() as cur:
