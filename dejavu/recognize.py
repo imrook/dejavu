@@ -24,18 +24,22 @@ class BaseRecognizer(object):
 
 
 class FileRecognizer(BaseRecognizer):
-    def __init__(self, dejavu, width_milliseconds):
+    def __init__(self, dejavu):
         super(FileRecognizer, self).__init__(dejavu)
-        self.width_milliseconds = width_milliseconds
 
-    def recognize_file(self, filename):
+    def recognize_file(self, filename, split_milliseconds, start_milliseconds, limit_milliseconds):
 
         matches = []
         audiofile = AudioSegment.from_file(filename)
-        segments = np.math.ceil(audiofile.duration_seconds * 1000 / self.width_milliseconds)
+        max_milliseconds = audiofile.duration_seconds * 1000 - start_milliseconds
+
+        if limit_milliseconds is not None and max_milliseconds > limit_milliseconds:
+            max_milliseconds = limit_milliseconds
+
+        segments = np.math.ceil(max_milliseconds / split_milliseconds)
         for seg in range(0, int(segments)):
-            start = seg * self.width_milliseconds
-            frames, self.Fs, file_hash = decoder.read(filename, audiofile, self.width_milliseconds, start)
+            start = start_milliseconds + seg * split_milliseconds
+            frames, self.Fs, file_hash = decoder.read(filename, audiofile, split_milliseconds, start)
 
             t = time.time()
             match = self._recognize(*frames)
@@ -48,8 +52,8 @@ class FileRecognizer(BaseRecognizer):
 
         return matches
 
-    def recognize(self, filename):
-        return self.recognize_file(filename)
+    def recognize(self, filename=None, split_milliseconds=10000, start_milliseconds=0, limit_milliseconds=None):
+        return self.recognize_file(filename, split_milliseconds, start_milliseconds, limit_milliseconds)
 
 
 class MicrophoneRecognizer(BaseRecognizer):
@@ -110,9 +114,10 @@ class MicrophoneRecognizer(BaseRecognizer):
     def get_recorded_time(self):
         return len(self.data[0]) / self.rate
 
-    def recognize(self, milliseconds=10000):
+    def recognize(self, limit_milliseconds=10000):
         self.start_recording()
-        for i in range(0, int(self.samplerate / self.chunksize * milliseconds / 1000.0)):
+        segments = int(self.samplerate / self.chunksize * limit_milliseconds / 1000.0)
+        for i in range(0, segments):
             self.process_recording()
         self.stop_recording()
         return [self.recognize_recording()]

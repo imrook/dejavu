@@ -275,6 +275,7 @@ class SQLDatabase(Database):
         with self.cursor() as cur:
             for split_values in grouper(values, 1000):
                 cur.executemany(self.INSERT_FINGERPRINT, split_values)
+                cur.connection.commit()
 
     def return_matches(self, hashes):
         """
