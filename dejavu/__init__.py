@@ -1,12 +1,13 @@
-from pydub import AudioSegment
-
-from dejavu.database import get_database, Database
-import dejavu.decoder as decoder
-import fingerprint
 import multiprocessing
 import os
-import traceback
 import sys
+import traceback
+
+from pydub import AudioSegment
+
+import dejavu.decoder as decoder
+import fingerprint
+from dejavu.database import get_database, Database
 
 
 class Dejavu(object):
@@ -96,22 +97,17 @@ class Dejavu(object):
 
     def fingerprint_file(self, filepath, song_name=None):
         songname = decoder.path_to_songname(filepath)
-        song_hash = decoder.unique_hash(filepath)
         song_name = song_name or songname
-        # don't refingerprint already fingerprinted files
-        if song_hash in self.songhashes_set:
-            print "%s already fingerprinted, continuing..." % song_name
-        else:
-            song_name, hashes, file_hash = _fingerprint_worker(
-                filepath,
-                self.limit,
-                song_name=song_name
-            )
-            sid = self.db.insert_song(song_name, file_hash)
+        song_name, hashes, file_hash = _fingerprint_worker(
+            filepath,
+            self.limit,
+            song_name=song_name
+        )
+        sid = self.db.insert_song(song_name, file_hash)
 
-            self.db.insert_hashes(sid, hashes)
-            self.db.set_song_fingerprinted(sid)
-            self.get_fingerprinted_songs()
+        self.db.insert_hashes(sid, hashes)
+        self.db.set_song_fingerprinted(sid)
+        self.get_fingerprinted_songs()
 
     def find_matches(self, samples, Fs=fingerprint.DEFAULT_FS):
         hashes = fingerprint.fingerprint(samples, Fs=Fs)
