@@ -32,8 +32,9 @@ def init(configpath):
 
 
 def print_clips(clips):
+    print 'confidence'.rjust(10), 'start'.rjust(8), 'end'.rjust(8), 'source'
     for clip in clips:
-        print clip['start'].rjust(8), clip['end'].rjust(8), clip['source']
+        print clip['confidence'].rjust(10), clip['start'].rjust(8), clip['end'].rjust(8), clip['source']
 
 
 if __name__ == '__main__':
@@ -127,7 +128,8 @@ if __name__ == '__main__':
                     'out': 'results/out%s.mp4' % (i * 2),
                     'source': opt_arg,
                     'start': "%.2f" % debug_start,
-                    'end': "%.2f" % (debug_start + clip_duration)
+                    'end': "%.2f" % (debug_start + clip_duration),
+                    'confidence': 'Source'
                 })
 
             if debug:
@@ -140,7 +142,8 @@ if __name__ == '__main__':
                 'out': target_out_file_name,
                 'source': 'mp3/%s.mp4' % song['song_name'],
                 'start': "%.2f" % target_start,
-                'end': "%.2f" % (target_start + clip_duration)
+                'end': "%.2f" % (target_start + clip_duration),
+                'confidence': str(song['confidence'])
             })
 
             i += 1
