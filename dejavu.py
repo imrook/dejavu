@@ -87,18 +87,17 @@ if __name__ == '__main__':
     elif args.recognize:
         # Recognize audio source
         songs = []
-        source = args.recognize[0]
-        opt_arg = args.recognize[1]
+        opt_arg = args.recognize[0]
         try:
-            split_milliseconds = int(args.recognize[2])
+            split_milliseconds = int(args.recognize[1])
         except:
             split_milliseconds = 10000
         try:
-            start_milliseconds = int(args.recognize[3])
+            start_milliseconds = int(args.recognize[2])
         except:
             start_milliseconds = 0
         try:
-            limit_milliseconds = int(args.recognize[4])
+            limit_milliseconds = int(args.recognize[3])
         except:
             limit_milliseconds = None
 
@@ -107,7 +106,7 @@ if __name__ == '__main__':
         subprocess.check_output('rm -f results/out*', shell=True)
 
         # use debug to add original clips between found clips. NOTE: assumes source is also video
-        debug = False
+        debug = True
         clip_infos = []
         clip_duration = split_milliseconds / 1000.0
         i = 0

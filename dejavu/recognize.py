@@ -19,7 +19,7 @@ class FileRecognizer:
             matches.extend(self.dejavu.find_matches(d, Fs=self.Fs))
         return self.dejavu.align_matches(matches)
 
-    def recognize_file(self, filename, split_milliseconds, start_milliseconds, limit_milliseconds):
+    def recognize(self, filename, split_milliseconds, start_milliseconds, limit_milliseconds):
 
         matches = []
         audio_file = AudioSegment.from_file(filename)
@@ -44,9 +44,6 @@ class FileRecognizer:
             matches.append(match)
 
         return matches
-
-    def recognize(self, filename=None, split_milliseconds=10000, start_milliseconds=0, limit_milliseconds=None):
-        return self.recognize_file(filename, split_milliseconds, start_milliseconds, limit_milliseconds)
 
 
 class NoRecordingError(Exception):
