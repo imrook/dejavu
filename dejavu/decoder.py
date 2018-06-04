@@ -1,10 +1,9 @@
-import os
 import fnmatch
-import numpy as np
-from pydub import AudioSegment
-from pydub.utils import audioop
-import wavio
+import os
 from hashlib import sha1
+
+import numpy as np
+from pydub.utils import audioop
 
 
 def unique_hash(filepath, blocksize=2 ** 20):
@@ -35,33 +34,24 @@ def find_files(path, extensions):
                 yield (p, extension)
 
 
-def read(filename, audiofile, limit=None, start=0):
+def read(filename, audio_file):
     """
     Reads any file supported by pydub (ffmpeg) and returns the data contained
-    within. If file reading fails due to input being a 24-bit wav file,
-    wavio is used as a backup.
+    within.
 
-    Can be optionally limited to a certain amount of seconds from the start
-    of the file by specifying the `limit` parameter. This is the amount of
-    seconds from the start of the file.
-
-    returns: (channels, samplerate)
+    returns: (channels, sample rate, filename hash)
     """
     channels = []
     try:
+        data = np.fromstring(audio_file._data, np.int16)
 
-        if limit:
-            audiofile = audiofile[start:start + limit]
-
-        data = np.fromstring(audiofile._data, np.int16)
-
-        for chn in xrange(audiofile.channels):
-            channels.append(data[chn::audiofile.channels])
+        for chn in xrange(audio_file.channels):
+            channels.append(data[chn::audio_file.channels])
 
     except audioop.error:
         pass
 
-    return channels, audiofile.frame_rate, unique_hash(filename)
+    return channels, audio_file.frame_rate, unique_hash(filename)
 
 
 def path_to_songname(path):

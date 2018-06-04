@@ -102,11 +102,7 @@ if __name__ == '__main__':
         except:
             limit_milliseconds = None
 
-        # if source in ('mic', 'microphone'):
-        #     songs = djv.recognize(MicrophoneRecognizer, limit_milliseconds=int(opt_arg))
-        # elif source == 'file':
-        songs = djv.recognize(FileRecognizer, filename=opt_arg, split_milliseconds=split_milliseconds,
-                              start_milliseconds=start_milliseconds, limit_milliseconds=limit_milliseconds)
+        songs = FileRecognizer(djv).recognize(opt_arg, split_milliseconds, start_milliseconds, limit_milliseconds)
 
         subprocess.check_output('rm -f results/out*', shell=True)
 
@@ -120,7 +116,7 @@ if __name__ == '__main__':
         if debug:
             songs = list(reversed(songs))
 
-        for song in songs:
+        for i, song in enumerate(songs):
 
             if debug:
                 debug_start = float((start_milliseconds + (len(songs) - 1 - i) * split_milliseconds) / 1000.0)
@@ -138,15 +134,18 @@ if __name__ == '__main__':
                 target_out_file_name = 'results/out%s.mp4' % i
 
             target_start = float(song['offset_seconds'])
+            target_end = target_start + clip_duration
+
+            if i == len(songs) - 1:  # last
+                target_end -= ((split_milliseconds - limit_milliseconds % split_milliseconds) / 1000.0)
+
             clip_infos.append({
                 'out': target_out_file_name,
                 'source': 'mp3/%s.mp4' % song['song_name'],
                 'start': "%.2f" % target_start,
-                'end': "%.2f" % (target_start + clip_duration),
+                'end': "%.2f" % target_end,
                 'confidence': str(song['confidence'])
             })
-
-            i += 1
 
         print_clips(clip_infos)
 

@@ -65,13 +65,8 @@ class Dejavu(object):
 
             filenames_to_fingerprint.append(filename)
 
-        # Prepare _fingerprint_worker input
-        worker_input = zip(filenames_to_fingerprint,
-                           [self.limit] * len(filenames_to_fingerprint))
-
         # Send off our tasks
-        iterator = pool.imap_unordered(_fingerprint_worker,
-                                       worker_input)
+        iterator = pool.imap_unordered(_fingerprint_worker, filenames_to_fingerprint)
 
         # Loop till we have all of them
         while True:
@@ -100,7 +95,6 @@ class Dejavu(object):
         song_name = song_name or songname
         song_name, hashes, file_hash = _fingerprint_worker(
             filepath,
-            self.limit,
             song_name=song_name
         )
         sid = self.db.insert_song(song_name, file_hash)
@@ -159,23 +153,12 @@ class Dejavu(object):
             Database.FIELD_FILE_SHA1: song.get(Database.FIELD_FILE_SHA1, None), }
         return song
 
-    def recognize(self, recognizer, *options, **kwoptions):
-        r = recognizer(self)
-        return r.recognize(*options, **kwoptions)
 
-
-def _fingerprint_worker(filename, limit=None, song_name=None):
-    # Pool.imap sends arguments as tuples so we have to unpack
-    # them ourself.
-    try:
-        filename, limit = filename
-    except ValueError:
-        pass
-
+def _fingerprint_worker(filename, song_name=None):
     songname, extension = os.path.splitext(os.path.basename(filename))
     song_name = song_name or songname
     audiofile = AudioSegment.from_file(filename)
-    channels, Fs, file_hash = decoder.read(filename, audiofile, limit)
+    channels, Fs, file_hash = decoder.read(filename, audiofile)
     result = set()
     channel_amount = len(channels)
 
