@@ -117,6 +117,14 @@ if __name__ == '__main__':
 
         for i, song in enumerate(songs):
 
+            target_start = float(song['offset_seconds'])
+            target_end = target_start + clip_duration
+
+            if i == len(songs) - 1:  # last
+                target_end -= ((split_milliseconds - limit_milliseconds % split_milliseconds) / 1000.0)
+                if (target_end - start_milliseconds) < .01:
+                    continue
+
             if debug:
                 debug_start = float((start_milliseconds + (len(songs) - 1 - i) * split_milliseconds) / 1000.0)
                 clip_infos.append({
@@ -131,12 +139,6 @@ if __name__ == '__main__':
                 target_out_file_name = 'results/out%s.mp4' % (i * 2 + 1)
             else:
                 target_out_file_name = 'results/out%s.mp4' % i
-
-            target_start = float(song['offset_seconds'])
-            target_end = target_start + clip_duration
-
-            if i == len(songs) - 1:  # last
-                target_end -= ((split_milliseconds - limit_milliseconds % split_milliseconds) / 1000.0)
 
             clip_infos.append({
                 'out': target_out_file_name,
