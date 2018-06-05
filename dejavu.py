@@ -13,7 +13,7 @@ from dejavu.recognize import FileRecognizer
 
 warnings.filterwarnings("ignore")
 
-DEFAULT_CONFIG_FILE = "dejavu.cnf.SAMPLE"
+DEFAULT_CONFIG_FILE = "dejavu.cnf"
 
 
 def init(configpath):
@@ -56,6 +56,8 @@ if __name__ == '__main__':
                              'Usage: \n'
                              '--recognize mic number_of_seconds \n'
                              '--recognize file path/to/file split_milliseconds start_milliseconds limit_milliseconds\n')
+    parser.add_argument('--debug', action='store_true', 
+                        help='Enable debug mode to add original clips between found clips.\n')
     args = parser.parse_args()
 
     if not args.fingerprint and not args.recognize:
@@ -66,6 +68,8 @@ if __name__ == '__main__':
     if config_file is None:
         config_file = DEFAULT_CONFIG_FILE
         # print 'Using default config file: %s' % (config_file)
+
+    debug = args.debug
 
     djv = init(config_file)
     if args.fingerprint:
@@ -105,8 +109,6 @@ if __name__ == '__main__':
 
         subprocess.check_output('rm -f results/out*', shell=True)
 
-        # use debug to add original clips between found clips. NOTE: assumes source is also video
-        debug = True
         clip_infos = []
         clip_duration = split_milliseconds / 1000.0
         i = 0
